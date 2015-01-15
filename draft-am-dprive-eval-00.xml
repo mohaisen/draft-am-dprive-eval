@@ -1,0 +1,705 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 3 U (http://www.xmlspy.com)
+     by Daniel M Kohn (private) -->
+
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+    <!ENTITY rfc2119 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml'>
+    <!ENTITY rfc3552 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3552.xml'>
+    <!ENTITY rfc4949 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4949.xml'>
+    <!ENTITY rfc5246 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5246.xml'>
+    <!ENTITY rfc6973 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6973.xml'>
+    <!ENTITY rfc7258 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7258.xml'>
+
+]>
+
+
+<rfc category="bcp" ipr="trust200902" docName="draft-am-dprive-eval-00">
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+
+<?rfc toc="yes" ?>
+<?rfc symrefs="yes" ?>
+<?rfc sortrefs="yes"?>
+<?rfc iprnotified="no" ?>
+<?rfc strict="yes" ?>
+<front>
+
+
+<title abbrev="Evaluation of Privacy for DNS">Evaluation of Privacy for DNS Private Exchange</title>
+<author fullname="Aziz Mohaisen" initials="A." surname="Mohaisen">
+      <organization>Verisign Labs</organization>
+      <address>
+    <postal>
+      <street>12061 Bluemont Way</street>
+      <city>Reston</city>
+      <region>VA</region>
+      <code>20190</code>
+    </postal>
+    <phone>+1 703 948-3200</phone>
+        <email>amohaisen@verisign.com</email>
+      </address>
+    </author>
+
+<author fullname="Allison Mankin" initials="A." surname="Mankin">
+      <organization>Verisign Labs</organization>
+      <address>
+    <postal>
+      <street>12061 Bluemont Way</street>
+      <city>Reston</city>
+      <region>VA</region>
+      <code>20190</code>
+    </postal>
+    <phone>+1 703 948-3200</phone>
+        <email>amankin@verisign.com</email>
+      </address>
+    </author>
+        <date/>
+        <abstract><t>The set of DNS requests that an individual makes can provide an attacker with a large amount of information about that individual.   DNS Private Exchange (DPRIVE) aims to deprive the attacker of this information.   This document describes methods for measuring the performance of DNS privacy mechanisms, particular, it provides methods for measuring effectiveness in the face of pervasive monitoring as defined in [RFC7258].  The document includes example assessments for common use cases.</t></abstract>
+    </front>
+
+    <middle>
+        <section title="Requirements notation">
+            <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
+            "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
+            and "OPTIONAL" in this document are to be interpreted as
+            described in <xref target="RFC2119"/>.</t>
+        </section>
+
+<section title="Motivation">
+    <t>One of the IETF’s core views is that protocols should be
+    designed to enable security and privacy while online (BCP 72)
+    <xref target="RFC3552"/>. In light of the recent reported
+    pervasive monitoring efforts , another goal is to design protocols
+    and mechanisms to make such monitoring expensive or infeasible to
+    conduct.  As detailed in DPRIVE problem statement, domain name
+    system (DNS) resolution is an important arena for pervasive
+    monitoring, and in some cases may be used for breaching the
+    privacy of individuals. The set of DNS requests that an individual
+    makes can provide a large amount of information about that
+    individual. Not only individual requesters reveal information with
+    their sets of DNS queries.  In some specific use cases, the sets
+    of DNS requests from a DNS recursive resolver or other entity may
+    also provide revealing information.  This document describes
+    methods for measuring the performance of DNS privacy mechanisms,
+    particular, it provides methods for measuring effectiveness in the
+    face of pervasive monitoring as defined in
+    <xref target="RFC7258"/>.  The document includes example
+    assessments for common use cases. </t>
+
+<t>The privacy risks associated with DNS monitoring are not new,
+however they were brought into a greater visibility by the issues
+described in <xref target="RFC7258"/>. [dprive-problem] was published
+and the DPRIVE working group were formed as responses; in addition
+there is related DNS IETF work such as [qname-minimization] and
+[IPSECA] and related general work such as [opportunistic-encrypt].
+The existing work on DNS privacy mechanisms of necessity asserts some
+privacy assurances and operational relevance.  Metrics for these
+privacy assurances are needed and are in reach based on existing
+techniques from the general field of privacy engineering.  Systematic
+evaluation of DNS privacy mechanisms will enhance the operational
+effectiveness of DNS private exchange.  </t>
+
+
+   <t>Evaluating an individual mechanism for DNS privacy could be
+   accomplished on a one-off basis, presumably as Privacy
+   Considerations within each specification, but this would not
+   address either the variation of operational contexts or the risks
+   as well as benefits of using multiple mechanisms together (in
+   composition).  </t>
+
+   <t>Further, while various techniques proposed for addressing the
+   problem of DNS privacy are effective stand-alone in specific system
+   contexts, the composition of a holistic solution from multiple
+   building blocks in a single deployment may create new privacy risks
+   that are unseen in the individual evaluation of the building
+   blocks. Those risks are better understood in light of a rigorous
+   evaluation paradigm and well-understood notational
+   definitions. Such composition of DNS privacy from multiple building
+   blocks is sometimes a necessity and not an option, and thus
+   understanding the various techniques in light of such notational
+   evaluation paradigm is a necessity as well. As a case in point, DNS
+   encryption combined with qname minimization is analyzed in Section
+   #.</t>
+
+   <t>Definitions required for evaluating the privacy of stand-alone
+   and composed design are not limited to privacy notions, but also
+   need to include the attacker model and some information about trust
+   among the entities in a given system.  A mechanism for providing
+   privacy to withstand the power and capabilities of a passive
+   pervasive monitor may not withstand a more powerful attacker using
+   active monitoring by plugging itself into the path of individuals’
+   DNS requests as a forwarder, or worse, by controlling a DNS
+   recursive server (that is, in what we define later as the malicious
+   attack model).  Having some standard attack models, and
+   understanding how applicable they are to various designs is a part
+   of evaluating the privacy.</t>
+
+    <t>The rest of this paper brings together definitions, methods and
+    metrics to enable evaluation of DNS private exchange. </t>
+
+    <t>To this end, in this document we define terminology, attack
+    models, and systems setups and we carry out exemplary privacy
+    evaluations for DNS private exchange.. We offer an evaluation of
+    the mechanisms, attack models and systems under consideration in
+    the DPRIVE charter, in the form of templates and outcomes such
+    that, given a specific attack model, the guarantees with respect
+    to privacy of a subject or an item of interest are quantified.</t>
+
+    <t>The rest of this document is organized as follows. In section
+    2, we introduce the definitions used in the rest of the document,
+    including the system model and privacy notations and definitions.
+    AND MORE.  OR A Table of Contents.</t>
+</section>
+
+<section title="Privacy Evaluation Definitions">
+    <t>This section provides definitions to be used in for privacy
+    evaluation of DNS.  These are common definitions, found in some
+    form in most papers about computer privacy; it is important to
+    find some precision.  <xref target="RFC6973"/> is the source of
+    most of the terms this document uses normatively.  We have not
+    modified <xref target="RFC6973"/> definitions, but have in some
+    cases added some text about their use in the DNS case.  In
+    particular, we identify entities, data analysis, and
+    identifiability, following the classification used by
+    <xref target="RFC6973"/>.  We have imported text from
+    <xref target="RFC6973"/> in order to make this document more
+    readable. </t>
+    
+    <section title="RFC 6973 Definitions - Entities ">
+    <t><list style="symbols">
+        <t>Attacker: An entity that works against one or more privacy
+        protection goals.  Unlike observers, attackers' behavior is
+        unauthorized.</t>
+
+        <t>Eavesdropper: A type of attacker that passively observes an
+        initiator's communications without the initiator's knowledge
+        or authorization.  This may include a passive pervasive
+        monitor, defined below. </t>
+
+        <t>Enabler: A protocol entity that facilitates communication
+        between an initiator and a recipient without being directly in
+        the communications path. Examples include a recursive
+        resolver, a proxy, or a forwarder.  [Hoffman DNS terminology
+        draft]</t>
+
+        <t>Individual:  A human being (or a group of them)</t>
+
+        <t>Initiator: A protocol entity that initiates communications
+        with a recipient.</t>
+
+        <t>Subject: This term is not in <xref target="RFC6973"/>, but
+        it is a useful almost synonym with individual.  When the
+        privacy of a group or an organization is of interest to an
+        attacker, we will reference the group/organization as Subject
+        rather than Individual.  This is not a standard type of usage
+        in privacy, but it appears to be particularly meaningful for
+        the DNS Private Exchange. </t>
+
+        <t>Intermediary: A protocol entity that sits between the
+        initiator (stub resolver) and the recipient (recursive
+        resolver or authority resolver) and is necessary for the
+        initiator and recipient to communicate.  Unlike an
+        eavesdropper, an intermediary is an entity that is part of the
+        communication architecture and therefore at least tacitly
+        authorized.  </t>
+
+        <t>Observer: An entity that is able to observe and collect
+        information from communications, potentially posing privacy
+        threats, depending on the context.  As defined in this
+        document, initiators, recipients, intermediaries, and enablers
+        can all be observers.  Observers are distinguished from
+        eavesdroppers by being at least tacitly authorized.</t>
+
+        <t>Recipient: This term from <xref target="RFC6973"/> appears
+        to not be useful in the evaluation of DNS privacy, because of
+        the emphasis on the query side rather than the response side,
+        and the use of the DNS terms recursive resolver, authority
+        resolver, forwarder and so forth.</t>
+
+    </list></t>
+</section>
+
+
+<section title="RFC 6973 Definitions - Data and Analysis">
+    <t><list style="symbols">
+       <t>Attack: An intentional act by which an entity attempts to
+       violate an individual's privacy.  See
+       <xref target="RFC4949"/>.</t>
+
+        <t>Correlation: The combination of various pieces of
+        information that relate to an individual or subject, or that
+        obtain that characteristic when combined.</t>
+
+        <t>Fingerprint: A set of information elements that identifies
+        a device or application instance.</t>
+
+        <t>Fingerprinting: The process of an observer or attacker
+        uniquely identifying (with a sufficiently high probability) a
+        device or application instance based on multiple information
+        elements communicated to the observer or attacker.  See
+        [EFF].</t>
+
+        <t>Item of Interest (IOI): Any data item that an observer or
+        attacker might be interested in.  This includes attributes,
+        identifiers, identities, communications content, and the fact
+        that a communication interaction has taken place.  In the DNS
+        private exchange context, items of interest can be Source IP
+        address, ASN of the Source IP address, and the query itself,
+        including the qname, and other attributes.</t>
+
+        <t>Personal Data: Any information relating to an individual
+       who can be identified, directly or indirectly.  Note that when
+       a Subject is involved that is not an individual, we will
+       identify Items of Interest but not reference this as
+       Personal.</t>
+
+        <t>(Protocol) Interaction: A unit of communication within a
+        particular protocol.  A single interaction may be comprised of
+        a single message between an initiator and recipient or
+        multiple messages, depending on the protocol.</t>
+
+        <t>Traffic Analysis: The inference of information from
+        observation of traffic flows (presence, absence, amount,
+        direction, timing, packet size, packet composition, and/or
+        frequency), even if flows are encrypted.  See
+        <xref target="RFC4949"/>.</t>
+
+        <t>Undetectability: The inability of an observer or attacker
+        to sufficiently distinguish whether an item of interest exists
+        or not.</t>
+
+        <t>Unlinkability: Within a particular set of information, the
+        inability of an observer or attacker to distinguish whether
+        two items of interest are related or not (with a high enough
+        degree of probability to be useful to the observer or
+        attacker).</t>
+
+        <t>Unobservability is a stronger privacy definition combining
+        undetectability and unlinkability – it is included in the
+        Supplemental Terms below because of its pertinence to
+        evaluating composed DNS privacy mechanisms.</t>
+    </list></t>
+</section>
+
+
+<section title="RFC 6973 Definitions - Identifiability ">
+    <t><list style="symbols">
+        <t>Anonymity:  The state of being anonymous.</t>
+
+        <t>Anonymity Set: A set of individuals that have the same
+        attributes, making them indistinguishable from each other from
+        the perspective of a particular attacker or observer.</t>
+
+        <t>Anonymous: A state of an individual in which an observer or
+        attacker cannot identify the individual within a set of other
+        individuals (the anonymity set).</t>
+
+        <t>Attribute:  A property of an individual or subject.</t>
+
+        <t>Identifiability: The extent to which an individual is
+        identifiable.  <xref target="RFC6973"/> has the rest of the
+        variations on this (Identifiable, Identification, Identifed,
+        Identifer, Identity, Identity Confidentiality)</t>
+
+        <t>Identity Provider: An entity (usually an organization) that
+        is responsible for establishing, maintaining, securing, and
+        vouching for the identities associated with individuals. </t>
+
+        <t>Personal Name: A natural name for an individual.  Personal
+        names are often not unique and often comprise given names in
+        combination with a family name.  An individual may have
+        multiple personal names at any time and over a lifetime,
+        including official names. From a technological perspective, it
+        cannot always be determined whether a given reference to an
+        individual is, or is based upon, the individual's personal
+        name(s) (see Pseudonym). The reason to import this definition
+        is that some query names that cause privacy leakage do so by
+        embedding personal names as identifiers of host or other
+        equipment, e.g. AllisonMankinMac.example.com.</t>
+
+        <t>Pseudonymity: See the formal definition in the next section instead of the <xref target="RFC6973"/>. </t>
+
+
+        <t>Identifiability Definitions in <xref target="RFC6973"/>
+        also include some material not included here because the
+        distinctions are not major for DNS Private Exchange, such as
+        real and official names, and variant forms of Pseudonymity in
+        its informal definition. </t>
+
+        <t>Relying Party : An entity that relies on assertions of
+        individuals' identities from identity providers in order to
+        provide services to individuals.  In effect, the relying party
+        delegates aspects of identity management to the identity
+        provider(s).  Such delegation requires protocol exchanges,
+        trust, and a common understanding of semantics of information
+        exchanged between the relying party and the identity
+        provider.</t>
+    </list></t>
+</section>
+
+<section title="Supplemental Definitions  and Formalizations">
+    <t><list style="symbols">
+        <t>Personally Identifiable Information (PII): Information
+        (attributes) that can be used on its own, or along with other
+        side information, to identify, locate, and/or contact a single
+        individual or subject.  </t>
+    </list></t>
+
+    <t>Note that the definition above indicates that the PII can be
+    used on its own or in context. In the problem at hand, “on its
+    own” in the context of DNS includes IP address, q-name pair,
+    timing attributes, etc., while “along with other information” may
+    include a combination of the above, other profiling patterns,
+    etc. On the other hand, “in context” may include an
+    organization-level attributes, where the individual is not the
+    subject of PII, but an organization; i.e., a network address of
+    /x, understanding of user’s behavior, etc. The definition of PII
+    is complementary to the definition of items of interest, and is
+    widely used in the privacy community and in practice (along with a
+    stronger term Sensitive Personally Identifiable Information).  We
+    include it to support the use of this document in practice. </t>
+
+    <t><list style="symbols">
+        <t>k-anonymity: given an anonymity set of size K, a subject s
+        is said to be anonymous if it is not identifiable in such
+        set. More formally, we say that a user s is anonymous if the
+        attributes of the user s are computationally indistinguishable
+        from the distribution of attributes of all users in the
+        anonymity set K.</t>
+    </list></t>
+
+    <t>Note that the definition above does not consider the privacy
+    (as anonymity) as a binary property, but rather a quantifiable
+    continuous variable. Thus, given a maximal privacy (for uniform
+    attributes), it is easy to measure the achieved privacy for an
+    individual user using the definition. As with all definitions
+    related to computational indistinguishability, we assume that the
+    adversary is computationally and resources-bounded
+    (realistically), and identification is bounded to the given set of
+    attributes used for characterizing the user (IP address, q-name,
+    etc).</t>
+
+    <t>Often time it is desirable to other identifiers than real names
+    or identifiers for communication, also known as pseudonyms. A
+    pseudonym is a name assumed by an individual in some context,
+    unrelated to the individual's personal names known by others in
+    that context, with an intent of not revealing the individual's
+    identities associated with his or her other names.  Pseudonyms are
+    likely not unique.</t>
+
+    <t><list style="symbols">
+        <t>Pseudonymity: a relaxation of the definition of anonymity
+    for usability. In particular, pseudonymity is an anonymity feature
+    obtained by using a pseudonym, an identifier that is used for
+    establishing a long relationship between two entities. Pseudonym
+    are identifiers other than real identifiers.</t>
+    </list></t>
+
+     <t>As an example to provide pseudonymity, users can use a
+     randomly generated pseudonym that will identify their context,
+     but not their actual identity, location, or contact
+     information. On the other hand, pseudonymity enables the other
+     entity (e.g., recursive name server or authority server if the
+     pseudonym is propagated to either of them) to link multiple
+     queries of the same entity, thus establishing a long-term
+     relationship. Pseudonym in this context is (somewhat) the
+     opposite of a real identity (e.g., IP address, user name,
+     etc.). In the literature, stronger definitions than pseudonymity
+     that are widely used for defining privacy are unlinkability,
+     unobservability, and undetectability. We note that the definition
+     of pseudonym does not require such identifiers to be
+     unique. However, to facilitate the application in which
+     pseudonyms are used, pseudonyms are assumed long-lived, and to
+     avoid collision in the name space, they could be unique (up to
+     the uniqueness of the output of a hash function, for
+     example).  </t>
+
+<t><list style="symbols">
+<t>Unlinkability: is a negation of “linkability”. Formally, two items of interest are said to be unlinkable if the certainty of the attacker concerning those items of interest is not affected by observing the system. This is, unlinkability implies that the a-posteriori probability computed by the attacker concerning that two items of interest are related is close enough to the a-priori probability computed by an attacker based on his knowledge.</t> 
+</list></t>
+
+<t>More precisely, two items of interests are said to be unlinkable if the gained ability (probability) by the attacker by observing the system concerning those items of interest is sufficiently small (less than or equal to beta which is close to 0). On the other hand, the two items of interest are said to be linkable if the gained probability by the attacker by observing the system is sufficiently large (greater than or equal to alpha).</t>
+
+<t>Informally, given two items of interest (user attributes, DNS queries, users, etc.), unlinkability is defined as the inability of the attacker to sufficiently determine whether those items are related to one another. In the context of DNS, that means an adversary with the given attributes about the items of interest is not able to tell that two queries are related to each other (e.g., by relating them to the same user).</t>
+
+<t><list style="symbols">
+<t>Undetectability: a stronger definition of privacy, where an item of interest is said to be undetectable if the attacker is not sufficiently able to know or tell whether the item exists or not.</t>
+</list></t>
+
+<t>Note that undetectability implies unlinkability. As explained below, a way of ensuring undetectability is to use encryption secure under known ciphertext attacks, or randomized encryption. </t>
+
+<t><list style="symbols">
+<t>Unobservability: a stronger definition of privacy that requires satisfying both undetectability and anonymity. Undetectability ensures the undetectability of the item of interest against all uninvolved subjects. On the other hand, the anonymity requirement is to ensure the anonymity of all subjects involved in the query against each other. </t>
+</list></t>
+
+<t>In theory, there are many ways of ensuring unobservability by fullfiling both requirements. For example, undetectability requires that no party uninvolved in the resolution of a DNS query shall know that query has existed or not. A mechanism to ensure this function is encryption secure under known ciphertext attacks, or randomized encryption for all other than stub, and pseudonms for the stub resolver. On the other hand, a mechanism that ensures the anonymity part of the  unobservability definition is the use of mix networks for routing DNS queries.</t>
+
+<t>In practice, unobservability is a very strong definition, since it often unnecessary to guard the anonymity of the subjects against each other except for the stub resolver better addressed by weak forms of anonymity, such as the use of pseudonms. Finally, we note that unobservability is stronger than undetectability, by definition, and any scheme that ensures unobservability also ensures undetectability.  </t> 
+
+</section>
+</section>
+
+<section title="Assumptions about Quantification of Privacy ">
+<t>The quantification of privacy is intertwined with which of the above definitions are used and with the mechanisms available.  That is, is the goal unlinkability only, or is undetectability.  Is pseudonymity sufficient? . On the one hand, while a binary measure of privacy is sometimes possible, e.g. being able to say that the transaction is anonymous, this document assume that the binary is not frequently obtainable, and the rest of the document provides methods for continuous quantification.  Both are relevant to DNS Private Exchange.  Another way to look at this is that the quantification could be exactly the probabilities 1 and 0, corresponding the binary, but the methods often will give values between those inclusively.</t>
+
+<t>Here is an example.  The uncertainty of the adversary with respect to the item of interest (subject) upon observing queries originated from a given user (identified appropriately).</t>
+<t><list style="symbols">
+<t>For a subject A, and a set of observations by the adversary, Y = [y1, y2, … yn], we define the privacy of A as the uncertainty of the attacker of knowing that A is itself among many others under the observations Y; this is, we define Privacy = 1 - P[A | Y]</t>
+
+<t>For an item of interest r associated with a user A, we similarly define the privacy of r as Privacy = 1 – P[r | Y]. </t>
+</list></t>
+</section>
+
+<section title="System Model">
+<t>In theory, a DNS client (called DNS stub resolver) can resolve a domain name or address into the corresponding DNS record by contacting the authoritative name server responsible for that domain name (or address) directly. However, to improve the operation of DNS resolution, and reduce the round trip time required for resolving an address, both caching and recursive resolution are implemented. Caching is implemented at an intermediary between the stub and the authoritative name server so that to speed up the resolution, in what is known as DNS caches. In practice, many of those caches implement the recursive logic of DNS resolution to ultimately reach the proper name server responsible for an address, thus named DNS recursive resolvers. Forwarders and proxies reside between those three major resolvers in their respective order in the system. The following provides an overview of the four entities highlight above: stub resolvers, recursive resolvers, authoritative name server, and forwarders. </t>
+
+<section title="DNS Resolvers (System model)">
+<t><list style="symbols">
+<t> Stub resolver (S): a minimal resolver that does not support referral, and delegates recursive resolution to a recursive resolver.  A stub resolver is a consumer of recursive resolutions. Per the terminology of <xref target="RFC6973"/>, a stub resolver is an initiator. </t>
+<t> Recursive resolver (R): is a resolver that implements the recursive function of DNS resolution, and does the recursive resolution starting with the DNS root, up to the authoritative name server responsible for a domain name, on behalf of a stub resolver. Per the terminology of <xref target="RFC6973"/>, a recursive resolver is an enabler to the privacy in the design space.</t>
+<t> Authoritative resolver (A): is a resolver (server) that holds the actual DNS record for a particular domain name or address. As such, a recursive resolver queries the authoritative resolver to resolve a domain name or address. Per the terminology of <xref target="RFC6973"/>, the authoritative name server is an enabler in the protocol design space.</t> 
+<t> Forwarder/proxy (P): between the stub resolver and the authoritative resolver is not necessarily a single recursive, and there may exist one or more entities that are called forwarders. Thus, proxies or forwarders are server in between stub resolver and recursive, or recursive and authority resolver, which do not implement primary DNS functionality, but forwards or directs queries to the next level in the resolution system. Per the terminology in <xref target="RFC6973"/>, forwarders and proxies are intermediaries.</t>
+</list></t>
+
+
+
+
+
+<t>Evaluating various privacy protection mechanisms under the pervasive monitoring adversary (define below) is only meaningful when understanding the links that contribute to the attack surface of the system at hand. For our analysis, and based on the set of system entities (stub, recursive, proxy, and authoritative), we define the following links corresponding to parts where an eavesdropper can plug himself. </t>
+<t><list style="symbols">
+<t> Stub -> Recursive (S-R): a link between the stub resolver and a recursive resolver that are within the same network domain.</t>
+<t> Stub -> Proxy (S-P): a link between the stub resolver and the proxy resolver. The proxy does not implement the DNS recursive resolution logic, and its intentional function is forwarding the DNS requests on behalf of the stub resolver to the next proxy it is connected to. </t>
+<t> Proxy -> Recursive (P-R): a link between a proxy and a recursive server.</t>
+<t> Recursive -> Authoritative (R-A): a link between a recursive and an authoritative name server.</t>
+</list></t>
+
+<t>Rather than notating in system setup that an entity is compromised, this is covered in the attack model which has system elements as parameters.</t>
+
+<t>In the system design above, we note that there is a possibility of having the stub and recursive within the same domain, i.e., on the same machine, which leads to the concept of “unlucky few”. This is, an adversary monitoring the link between the recursive and the authoritative server for traffic originated from such initiator with the proxy located on the same machine would be able to attribute all queries to the same user, and the mixing capabilities of the recursive will not be useful in preserving any form of privacy for the user. The same feature is also seen in the case where the recursive is serving a small set of users, e.g., users within a small enterprise with limited number of address allocations and users. In the rest of this document, we refer to this situation as PR (SR; stub and recursive as one entity in the system model). </t>
+
+<t>We note that there could be various proxies between the stub resolver and a recursive. While from functionality point of view they can all be consolidated into a single proxy without affecting the system view, the behavior of such proxies may affect the size and shape of the attack surface. However, we believe that an additional treatment is needed for this aspect, and we preclude from the discussion here.</t>
+
+<t>Another set of links we preclude are those residing between a recursive and an authoritative name server.  Main reason for this is the scoping of the DPRIVE charter.  But also since there could be multiple proxies and forwarders, which would affect the structure of the system, and thus affect the attack surface depending on the behavior of such proxies.</t>
+
+<t>The model above also simplifies the discussion in many ways. For example based on the description above, we may envision a more elaborate DNS system description that may include a cache that is either within the same network or out of the network as the stub resolver. Furthermore, the recursive name server could be one among two types: a recursive resolver that is within the same networked domain of the stub resolver, or one that is out of the networked domain of the stub resolver. An example for a stub and recursive resolvers that belong to the same network domain is the case of a single organization that does not outsource its recursive resolution. As such, this organization would have stub resolvers sending their resolution requests to their own recursive. Anything that falls out of the scope of this definition and example is considered within the scope of the second type of recursive. </t>
+</section>
+    </section>
+<section title="Attack Model">
+<t>The Definitions section has defined Attack and Attacker, but not Attack Model, which is needed to actually evaluate Privacy, so that is now defined.</t>
+
+<t><list style="symbols">
+<t> Attack model: a well-defined set of capabilities indicating how much information the attacker has and in what context in order to reach a goal of breaching the privacy of an individual or subject with respect to a given privacy metric. </t>
+</list></t>
+
+<t>In this document we focus on two attack models, namely a pervasive monitor and a malicious monitor. The first attack model has two forms, namely active and passive attack models, which are defined in the following. </t>
+
+<section title="Attacker Type-1 – Pervasive Monitor">
+<t>This adversary corresponds to the pervasive monitoring adversary described in <xref target="RFC7258"/>. This attacker relies on monitoring capabilities to breach the privacy of individuals from the DNS traffic. In this regard, this adversary is capable of eavesdropping on traffic between two end points, including traffic between any of the pairs of the entities described in section 2.1. We emphasize that this adversary, while powerful, does not influence the way that, for example, a name server selection process takes place for forwarding queries from a recursive to an authoritative name server. This attack model has two forms, namely passive or active pervasive monitor.</t> 
+<t><list style="symbols">
+<t> Type-1A: Passive Pervasive Monitor: an attacker who is able to monitor links carrying individual’s traffic by the chances of being on the user’s path. This attacker does not try to be on the path of any particular individual user, and uses his system location to launch the attack and learn as much as possible about users and their behavior in the system. </t>
+<t> Type-1B: Active Pervasive Monitor: an attacker who is able to monitor links and who is intentionally and actively trying to breach the privacy of individual users by getting on the path of user’s queries, by for example arranging to serve as intermediary, while not interfering with the contents of the queries or their responses to gain further information about the individual users. This attacker corresponds to the “honest but curious” model of adversaries that is well understood in the literature. </t>
+</list></t>
+</section>
+
+<section title="Attacker Type-2 – Malicious Monitor">
+<t>This attacker is more powerful than the previous attacker model, and corresponds to the malicious attack model that is widely studied in the security community. Formally, an attacker in the malicious monitor model has all of the active pervasive monitor capabilities as well as the capability to control one or more infrastructure elements, such as having a malicious recursive server, forwarder or proxy, under his or her control. </t>
+
+<t>The attacker is best understood in conjunction of the system model defined earlier. The capabilities of an adversary that is capable of performing monitoring only are understood in conjunction of a particular link that consistutes part of the attack surface. On the other hand, the capabilities of an active or malicious adversary are understood by both the links and other infrastructure components such proxies and recursive. In all scenarios, it is fair to assume that authority servers are trusted. </t>
+
+<t>To this end, for evaluating the privacy provided by a given mechanism in a particular system model, we characterize the attacker as a template with various parameters driven from the system model where the adversary is located and has the capabilities to observe or control in order to breach the privacy the user. Generally, we write the template as Attacker(Type, [Compromised_Entities], [Links]). For example, the template Attacker(Type-2, R, S-R) passed as a parameter in the evaluation of a privacy mechanism indicates a type-2 attacker that controls a recursive and has the capability of eavesdropping on the link between the stub and recursive resolvers. Other attacker templates include the appropriate parameterizations based on the above description of those attackers, including attackers that have the capabilities of monitoring multiple links and controlling multiple pieces of infrastructure. </t>
+
+</section>
+</section>
+
+<section title="Privacy Mechanisms">
+
+<t>There are various mechanisms proposed in the literature, including strawman designs, for ensuring the privacy of DNS queries. Those mechanisms include mixing networks, dummy traffic, private information retrieval techniques, and encryption-based techniques (tunneling over IPSEC, or using TLS). In the following we review some of those techniques and provide the proper references, so that the explanation of the evaluation mechanisms in the rest of the document are easier to follow. We note that those mechanisms are only examples, and are not necessarily conclusive (others are encouraged to point out addition examples and protocols).</t>
+
+<t><list style="symbols">
+<t> Private information retrieval: a mechanism that allows a user s to retrieve a record r from a database DB on a server without allowing the server to learn r. A trivial solution to the problem requires that s downloads the entire DB and then perform the queries locally. While that provides privacy to the queries of the user, the solution is communication inefficient for the size of the problem at hand. More sophisticated cryptographic solutions are multi-round, and thus reduce the communication overhead, but are still inefficient for the size of the problem at hand; i.e., the collective DNS records.  A related technique is oblivious transfer (symmetric PIR), which disallows the user from learning other than the record r, but also disallows the server from knowing which name is being queried – thus perhaps reducing the utility of DNS resolution for other applications. Also, while symmetric PIR works on a small dataset, the size of the problem at hand prevents its applicability in reality.</t>
+ 
+<t> Dummy traffic:  a simple mechanism in which the initiator of a DNS request will also generate k dummy queries and send the intended query along with those queries. As such, the adversary will not be able to tell which query is of interest to the initiator. For a given k, the probability that the adversary will be able to detect which query is being of interest to the initiator is equal to 1-1/(k+1). In that sense, and for the proper parameterization of the protocol, the attacker is bounded to the undetectability of the queries.</t> 
+
+<t> Mixing networks: in this technique, the initiator will use a mixing network, like Tor, for routing his or her queries to the intended resolution entity. As such, an adversary observing part of the system (per the links outlined in the attack surface above), will not be able to tell which user is sending which queries, and will not be able to associate queries to users directly. In that sense, the privacy is defined as the unlinkability of the queries: the probability that two queries coming from an exit node in the Tor network belonging to the same user is uniform among all users.</t>
+
+<t> Encryption-based techniques: (examples include T-DNS, DNS on IPSec, etc) using these techniques, the initiator starts an encrypted channel with the corresponding next level entity (in theory, proxy or recursive resolver) and encrypts the DNS queries for the names he is interested in. In theory, depending on the characteristics of the encryption algorithm and mode, various privacy properties are ensured. For examples, undetectability of queries is ensured using any type of encryption algorithm. On the other hand, linkability of queries is possible, unless other mechanisms are used to ensure unlikability – e.g., randomized encryption.</t> 
+
+<t> Besides the aforementioned techniques, a technique that is composed of multiple of those techniques might actually be useful to provide various privacy guarantees, or to ensure a strong privacy definition by combining two definitions fulfilled by its building blocks. For example, one can envision a system that combines the mixing networks (for unlinkability) and randomized encryption (for undetectability) thus collectively ensuring unobservability, yet a stronger definition of both of the definitions above.</t>
+</list></t>
+
+</section>
+
+
+<section title="Privacy Evaluation">
+
+
+<t>Now we turn our attention to the evaluation of privacy mechanisms in a standard form, given the attacker models, attack surface, system model, and the example protocols above. For simplicity, and to illustrate the idea of evaluation, we limit our attention to items of interest like queries.</t>
+
+
+<t>An evaluation mechanism is a template (or function) that takes multiple parameters as input, and returns evaluation parameters as a result of considering those inputs. The output of the evaluation template is based on the analysis of the individual algorithms, settings, and parameters passed to this evaluation mechanism. </t>
+
+<t>An interface of the evaluation mechanism is defined as follows:</t>
+
+<t>Eval(Privacy_Mechamism(param_1, param_2, …), System_Setting(param_1, param_2, …), Attacker_Model(param_1, param_2,...)</t>
+
+<t>The outcome of the evaluation function is a privacy guarantee for the given settings. This could be in the form of unlinkability, unobservability, etc., for the specified system and attacker model. Also, we utilize the notion of continuous variable measure of privacy, where possible, to capture the privacy preserved using the said technique. As such, the outcome of the evaluation function is a guarantee and a measure, where available for the said guarantee. </t>
+
+
+<t>As seen, each of the parameters in the above evaluation interface could be a template with various parameters. For example, using the system model above, and links that contribute to the attack surface, one can envision parameters passed to the system model template as those links, or more particularly links where the privacy mechanism is implanted. For example, the interface above is called, for a given scenario, as follows:</t>
+
+<t>Eval(Dummy_Traffic (k=10, distribution=uniform), System_Setting([S, P, R, A], [S-P, P-R, RA]), Attacker_Model(type-1A, S-R)).</t>
+
+<t>Where the mechanism to be evaluated is the dummy traffic mechanisms highlighted above as a strawman design, with k=10 and queries used to disguise the query of interest are selected uniformly at random from a pool of queries. Other options for the way that selection is done are envisioned to address edge cases of active adversaries. Furthermore, in the parameters passed in the evaluation function, the system setting concern privacy assurances on a link between the stub resolver and the recursive that implements the dummy traffic technique, to preserve privacy of queries from a type-1A, a passive monitoring attacker, as defined earlier. </t>
+
+<t>As mentioned earlier, we note that a system that combines multiple mechanisms can be as well evaluated using the same method and interface above, where the overall privacy assurances provided by the system consider the combined privacy guarantees of the individual components, if they are combined for building the system, or the weaker notion of the building blocks, if they are serialized over multiple links that the attacker observe (or on which the adversary has control over an end point involved in it) </t>
+
+
+<t>(undetectability, 0.91) &lt; Eval(Dummy_Traffic (k=10, distribution=uniform), System_Setting([S, P, R, A], [S-P, P-R, RA]), Attacker_Model(type-1A, S-R)). </t>
+
+<t>We note that this guarantee is not affected even when we have attacker of Type-1B. However, if a malicious attacker is in place where he can reply responses for arbitrary requests, and track them, the undetectability probability is affect. Studying such scenarios is open problem.</t>
+
+<t>To sum up, the above example is composed in the following template:</t>
+
+<figure><artwork><![CDATA[
+Eval(Dummy_Traffic (k=10, distribution=uniform), 
+    System_Setting([S, P, R, A], 
+    [S-P, P-R, R-A]), 
+    Attacker_Model(type-1A, S-R)). {
+    Privacy_Mechanism{
+        Mechanism_name = Dummy_Traffic  //k-anonymity
+        Parameters{
+            Queries = 10
+            Query_distribution = uniform
+    }
+    System_settings{
+        Entities = S, P, R and A;
+        Links = S-P, P-R, R-A
+    }
+    Attacker_Model{
+        Type = Type-1A
+        Compromised_Entities = NA
+        Links = S-R
+    }
+    Privacy_guarantee = undetectability
+    Privacy_measure = 1-(1/(queries+1)).
+
+    Return privacy_guarantee, privacy_measure
+
+}
+ ]]></artwork></figure>
+
+
+
+<t>Similarly, for the mix network based solution, we can compose the following template:</t>
+
+<t>Eval(mix (u=10, distribution=uniform), System_Setting(link=S-R), Attacker_Model(type-1A)). </t>
+
+<t>We note that the attacker resides between the stub and resolver, and thus the mixing network. To this end, we see that while a query is detectable, two queries are not linkable to the same initiator, and thus the provided guarantee is unlinkability. For the given number of users indicated by the parameter u, and assuming that at anytime the initiators are uniformly random, the probability that one query is coming from a given initiator is (1/10=0.1). As such, the probability probability that two queries are issued by the same initiator is 0.1^2 = 0.01, which represents the linkability probability. To that end, the unlinkability probability is given as 1-0.01 = 0.99. Thus,</t> 
+
+<t>(unlinkability, 0.99) &lt; Eval(mix (u=10, distribution=uniform), System_Setting(link=S-R), Attacker_Model(type-1A)). </t>
+
+<t>We note that even when the recursive is malicious (i.e., Type-2 adversary) the same results hold.</t>
+
+<t>To sum up, the above example is represented in the following template:</t>
+
+<figure><artwork><![CDATA[
+Eval(mix (u=10, distribution=uniform), 
+    System_Setting([S, P, R, A], 
+        [S-P, P-R, RA]), 
+            Attacker_Model(type-1A, P-R)). {
+
+    Privacy_Mechanism{
+        Mechanism_name = mix    //mixing network
+        Parameters{
+            Users = 10
+            Query_distribution = uniform
+    }
+    System_settings{
+        Entities = S, P, R and A;
+        Links = S-P, P-R, R-A
+    }
+    Attacker_Model{
+        Type = Type-1A
+        Entities = NA
+        Links = P-R
+    }
+
+    Privacy_guarantee = unlinkability
+    Privacy_measure = 1-(1/users)^2.
+
+    Return privacy_guarantee, privacy_measure
+}
+ ]]></artwork></figure>
+
+
+<t>Similarly, for an encryption-based technique, like using TLS, we have the following template (see <xref target="RFC5246"/> for parameters):</t>
+
+
+<figure><artwork><![CDATA[  
+Eval(TLS_enc (SHA256, ECDSA, port 53, uniform, NA), 
+    System_Setting([S, P, R, A], 
+        [S-P, P-R, RA]), 
+            Attacker_Model(type-1B, S-R)). {
+
+    Privacy_Mechanism{
+        Mechanism_name = TLS_enc    //encryption-based
+        Parameters{
+            Users = NA
+            Query_distribution = uniform
+            Hash_algorithm = SHA256
+            Sig_Algorithm = ECDSA
+            Port 53
+    }
+    System_settings{
+        Entities = S, P, R and A;
+        Links = S-P, P-R, R-A
+    }
+    Attacker_Model{
+        Type = Type-1B
+        Entities = NA
+        Links = S-R
+    }
+
+    Privacy_guarantee = unlinkability, undetectability
+    Privacy_measure (unlinkability) = 1
+    Privacy_measure (undetectability) = 0 // port 53 indicates DNS used
+
+
+    Return privacy_guarantee, privacy_measure
+}
+]]></artwork></figure>
+
+<t>Note that using port 443 in the above template would not change the measured privacy for, since the protocol (DNS) is specified in ALPN in the clear. However, using a mechanism that tunnels DNS traffic over 443, using for example Next Protocol Negotiation extension (NPN) would ensure undetectability.</t>
+
+
+</section>
+
+
+
+<section title="Security Considerations">
+        <t>The purpose of this document is to provide methods for those deploying or using DNS private exchange to assess the effectiveness of privacy mechanisms in depriving attackers of access to private information.  Protecting privacy is one of the dimensions of an overall security strategy. </t>
+
+<t>It is possible for privacy-enhancing mechanisms to be deployed in ways that are vulnerable to security risks, with the result of not achieving security gains.  For the purposes of privacy evaluation, it is important for the person making an evaluation to also ensure close attention to the content of the Security Considerations section of each mechanism being evaluated, for instance, to ensure if TLS is used for encryption of a link against surveillance, that TLS best security practices are in use.
+.</t>
+        </section>
+
+<section title="IANA Considerations">
+    <t>None.</t>
+</section>
+
+<section title="Acknowledgements">
+    <t>TBD.</t>
+</section>
+    </middle>
+
+    <back>
+<references title='Normative References'>
+&rfc2119;
+&rfc3552;
+&rfc4949;
+&rfc5246;
+&rfc6973;
+&rfc7258;
+</references>
+</back>
+
+</rfc>
