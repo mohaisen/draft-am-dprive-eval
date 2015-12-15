@@ -10,7 +10,6 @@
     <!ENTITY rfc7258 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7258.xml'>
     <!ENTITY rfc7301 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7301.xml'>
     <!ENTITY rfc7435 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7435.xml'>
-    <!ENTITY rfc7525 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7525.xml'>
     <!ENTITY rfc7626 PUBLIC '' 'http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7626.xml'>
 
 ]>
@@ -620,7 +619,7 @@ This attacker corresponds to the “honest but curious” adversary that is
 -->
 
 <t>
-  Note that we exclude malicious monitoring from this document since, by definition, a malicious actor has an intent associated with his actions.
+  Note that we exclude the malicious monitoring from this document since, by definition, a malicious actor has an intent associated with his actions.
 </t>
 
 </section>
@@ -1061,7 +1060,7 @@ is important for the person making an evaluation to also ensure close
 attention to the content of the Security Considerations section of
 each mechanism being evaluated, for instance, to ensure if TLS is used
 for encryption of a link against surveillance, that TLS best security
-practices <xref target="RFC7525"/> are in use.</t>
+practices <xref target="uta-tls-bcp"/> are in use.</t>
 </section>
 
 <section title="IANA Considerations">
@@ -1097,7 +1096,6 @@ practices <xref target="RFC7525"/> are in use.</t>
     &rfc6973;
     &rfc7258;
     &rfc7435;
-    &rfc7525;
     &rfc7626;
                 
                 
@@ -1123,8 +1121,8 @@ practices <xref target="RFC7525"/> are in use.</t>
       <author initials='P.' surname='Hoffman' fullname='Paul Hoffman'/>
       <date month='February' day='12' year='2015'/>             
       </front>         
-   <seriesInfo name="Internet-Draft" value="draft-ietf-dprive-dns-over-tls-01.txt"/>           
-    <format type="TXT" target="http://www.ietf.org/internet-drafts/draft-ietf-dprive-dns-over-tls-01.txt" />            
+   <seriesInfo name="Internet-Draft" value="draft-hzhwm-dprive-start-tls-for-dns-01.txt"/>           
+    <format type="TXT" target="http://www.ietf.org/internet-drafts/draft-hzhwm-dprive-start-tls-for-dns-01.txt" />            
    </reference>
     
     <reference anchor='ipseca'>
@@ -1137,8 +1135,8 @@ practices <xref target="RFC7525"/> are in use.</t>
         <author initials='A' surname='Mohaisen' fullname='Aziz Mohaisen'></author>
         <date month='March' day='24' year='2015'/>
       </front>
-      <seriesInfo name='Internet-Draft' value='draft-osterweil-dane-ipsec-03' />
-      <format type='TXT' target='https://tools.ietf.org/id/draft-osterweil-dane-ipsec-03.txt' />
+      <seriesInfo name='Internet-Draft' value='draft-osterweil-dane-ipsec-02' />
+      <format type='TXT' target='https://tools.ietf.org/id/draft-osterweil-dane-ipsec-02.txt' />
     </reference>
 
             
@@ -1176,11 +1174,10 @@ practices <xref target="RFC7525"/> are in use.</t>
     <author initials='S' surname='Bortzmeyer' fullname='Stephane Bortzmeyer'></author>
     <date month='March' day='4' year='2015'/> 
     </front>
-    <seriesInfo name='Internet-Draft' value='draft-ietf-dnsop-qname-minimisation-07' />
-    <format type='TXT' target='http://www.ietf.org/internet-drafts/draft-ietf-dnsop-qname-minimisation-07.txt' />
+    <seriesInfo name='Internet-Draft' value='draft-ietf-dnsop-qname-minimisation-02' />
+    <format type='TXT' target='http://www.ietf.org/internet-drafts/draft-ietf-dnsop-qname-minimisation-02.txt' />
     </reference>
 
-  <!--          
     <reference anchor='uta-tls-bcp'>  <front>      
     <title> Recommendations for Secure Use of TLS and DTLS </title>    
     <author initials='Y' surname='Sheffer' fullname='Yaron Sheffer'> </author> 
@@ -1190,8 +1187,7 @@ practices <xref target="RFC7525"/> are in use.</t>
     </front>
     <seriesInfo name='Internet-Draft' value='draft-ietf-uta-tls-bcp-11'/>           
     <format type='TXT' target='http://www.ietf.org/internet-drafts/draft-ietf-uta-tls-bcp-11.txt'/>              
-        </reference>  
-   -->            
+    </reference>              
 </references>
 
 </back>
